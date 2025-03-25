@@ -82,6 +82,7 @@ services:
       - xpack.license.self_generated.type=trial
       - xpack.security.http.ssl.enabled=false
       - xpack.security.enabled=true
+      - ingest.geoip.downloader.enabled=false
     ports:
       - 127.0.0.1:9200:9200
       - 127.0.0.1:9300:9300
