@@ -1,1 +1,1 @@
-edit_libgen.sed
+edit_libmeta.sed

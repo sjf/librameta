@@ -1,7 +1,0 @@
-Metadata-Version: 2.2
-Name: mbutils
-Version: 0.2
-Requires-Dist: humanfriendly
-Requires-Dist: sendgrid
-Requires-Dist: unidecode
-Dynamic: requires-dist
