@@ -1,0 +1,61 @@
+{
+  "number_of_shards": 1,
+  "number_of_replicas": 0,
+  "analysis": {
+    "char_filter": {
+      "replace_periods": {
+        "type": "pattern_replace",
+        "pattern": "\\.",
+        "replacement": " "
+      },
+      "remove_apostrophe": {
+        "type": "pattern_replace",
+        "pattern": "'",
+        "replacement": ""
+      },
+      "author_replace_titles": {
+        "type": "pattern_replace",
+        "pattern": "\\(([Aa]uthor|[Aa]uth\\.?|[Ee]ditors?|[Ee]ds?\\.?|ред\\.?|[Аа]вт\\.?|отв. ред.|гл. ред.|[Hh]rsg\\.?|сост\\.?|译|[Tt]ranslator|[Tt]ransl\\.?|μετάφραση|[Ii]llustrator|[Ii]llustrations|[Cc]uratore)\\)",
+        "replacement": " "
+      }
+    },
+    "tokenizer": {
+      "isbn_tokenizer": {
+        "type": "pattern",
+        "pattern": "[,;:]"
+      }
+    },
+    "filter": {
+      "asciifolding_preserve_original": {
+        "type": "asciifolding",
+        "preserve_original": true
+      }
+    },
+    "analyzer": {
+      "search_analyser": {
+        "type": "custom",
+        "tokenizer": "standard",
+        "char_filter": ["replace_periods", "remove_apostrophe"],
+        "filter": ["lowercase", "asciifolding_preserve_original"]
+      },
+      "author_analyser": {
+        "type": "custom",
+        "tokenizer": "standard",
+        "char_filter": ["author_replace_titles", "replace_periods", "remove_apostrophe"],
+        "filter": ["lowercase", "asciifolding_preserve_original"]
+      },
+      "isbn_analyser": {
+        "type": "custom",
+        "tokenizer": "isbn_tokenizer"
+      }
+    }
+  },
+  "index": {
+    "similarity": {
+      "bm25_nolength_normlization": {
+        "type": "BM25",
+        "b": 0
+      }
+    }
+  }
+}

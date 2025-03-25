@@ -1,0 +1,7 @@
+volumes:
+  db-data:
+    external: true
+  elastic-data:
+    external: true
+  elastic-config:
+    external: true

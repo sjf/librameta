@@ -1,0 +1,14 @@
+bs4
+elasticsearch
+pytest
+pandas
+requests
+langcodes
+sqlalchemy
+mysqlclient
+Flask-SQLAlchemy
+humanfriendly
+pycountry
+regex
+pyfakefs
+responses

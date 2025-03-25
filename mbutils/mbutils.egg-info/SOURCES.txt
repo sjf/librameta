@@ -1,0 +1,16 @@
+MANIFEST.in
+setup.py
+mbutils/ISO 639 language codes.csv
+mbutils/__init__.py
+mbutils/_defaults.py
+mbutils/config.py
+mbutils/iso_lang_codes.py
+mbutils/log.py
+mbutils/shell.py
+mbutils/utils.py
+mbutils/utils_test.py
+mbutils.egg-info/PKG-INFO
+mbutils.egg-info/SOURCES.txt
+mbutils.egg-info/dependency_links.txt
+mbutils.egg-info/requires.txt
+mbutils.egg-info/top_level.txt

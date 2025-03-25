@@ -1,0 +1,8 @@
+SELECT *
+INTO OUTFILE '/tmp/nonfiction.csv'
+CHARACTER SET utf8mb4
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+ESCAPED BY '"'
+LINES TERMINATED BY '\n'
+FROM nonfiction;

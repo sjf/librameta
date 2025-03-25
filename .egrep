@@ -1,0 +1,1 @@
+--exclude-dir=dumps --exclude-dir=logs --exclude-dir=admin/generated

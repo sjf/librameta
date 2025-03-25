@@ -1,0 +1,57 @@
+{
+  "dynamic": "strict",
+  "properties": {
+    "full_title": {
+      "type": "text",
+      "analyzer": "search_analyser"
+    },
+    "Title": {
+      "type": "text",
+      "analyzer": "search_analyser"
+    },
+    "Author": {
+      "type": "text",
+      "analyzer": "search_analyser",
+      "fields": {
+        "author_analyser" : {
+          "type": "text",
+          "analyzer": "author_analyser"
+        }
+      }
+    },
+    "Series": {
+      "type": "text",
+      "analyzer": "search_analyser"
+    },
+    "IdentifierWODash": {
+      "type": "text",
+      "analyzer": "isbn_analyser"
+    },
+    "Doi": {"type": "keyword", "doc_values": false},
+
+    "lang": {"type": "keyword"},
+    "lang3": {"type": "keyword"},
+    "Extension": {"type": "keyword"},
+    "extension_score": {"type": "integer"},
+    "year_": {"type": "keyword"},
+    "Filesize": {"type": "integer"},
+
+    "ID": {"type": "text", "index": "false"},
+    "MD5": {"type": "keyword", "index": "false", "doc_values": false},
+
+    "Edition": {"type": "text", "index": "false"},
+    "VolumeInfo": {"type": "text", "index": "false"},
+    "Periodical": {"type": "text", "index": "false"},
+    "Issue": {"type": "text", "index": "false"},
+
+    "Year": {"type": "keyword", "index": "false", "doc_values": false},
+    "Publisher": {"type": "text", "index": "false"},
+    "Language": {"type": "keyword", "index": "false", "doc_values": false},
+
+    "Description": {"type": "keyword", "index": "false", "doc_values": false},
+
+    "Pages": {"type": "keyword", "index": "false", "doc_values": false},
+    "PagesInFile": {"type": "integer", "index": "false", "doc_values": false},
+    "Coverurl": {"type": "text", "index": "false"}
+  }
+}
