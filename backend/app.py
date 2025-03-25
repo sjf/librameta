@@ -77,15 +77,15 @@ if __name__ != "__main__":
   setup_logging()
   log_startup()
 
-  @app.before_request
-  def require_auth():
-    print(request.path)
-    if request.path == '/login' or request.path.startswith('/static/'):
-      # No auth needed
-      return
-    if not session.get('authenticated'):
-      return redirect('/login')
+  # @app.before_request
+  # def require_auth():
+  #   print(request.path)
+  #   if request.path == '/login' or request.path.startswith('/static/'):
+  #     # No auth needed
+  #     return
+  #   if not session.get('authenticated'):
+  #     return redirect('/login')
 
-  @app.errorhandler(404)
-  def not_found(unused):
-    return redirect('/login')
+  # @app.errorhandler(404)
+  # def not_found(unused):
+  #   return redirect('/login')
