@@ -1,0 +1,26 @@
+services:
+  # frontend:
+  # The frontend is using host networking, so these
+  # settings are ignored.
+  #   ports: !override
+  #     - 443:443
+  #     - 7777:80 # Use for local linux testing.
+
+  backend:
+    ports: !override
+      - 8000:8000
+  elasticsearch:
+    ports: !override
+      - 9200:9200
+
+  db:
+    ports: !override
+      - 0.0.0.0:3306:3306
+    restart: always
+
+  kibana:
+    ports: !override
+      - 5601:5601
+    restart: always
+
+

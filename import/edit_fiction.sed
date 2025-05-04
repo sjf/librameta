@@ -1,0 +1,1 @@
+s/INSERT INTO `fiction` (`ID`, `MD5`, `Title`, `Author`, `Series`, `Edition`, `Language`, `Year`, `Publisher`, `Pages`, `Identifier`, `GooglebookID`, `ASIN`, `Coverurl`, `Extension`, `Filesize`, `Library`, `Issue`, `Locator`, `Commentary`, `Generic`, `Visible`, `TimeAdded`, `TimeLastModified`) VALUES //;t;d

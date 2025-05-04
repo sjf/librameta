@@ -1,0 +1,107 @@
+name: E2E tests for containers, backend and python modules.
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch: 
+jobs:
+  all-tests:
+    if: "!contains(github.event.head_commit.message, 'skip-action')"
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository    
+      uses: actions/checkout@main
+
+    - name: Install packages
+      run: |
+        sudo apt-get install -y unrar python3-pip goaccess
+        pip3 install pytest
+        pip3 install -qe mbutils
+        pip3 install -qr requirements.txt
+
+    - name: Set MB_LOG_DIR
+      run: echo "MB_LOG_DIR=${PWD}" >> $GITHUB_ENV
+
+    - name: Set permissions on logs dir
+      run: chmod 777 logs/
+
+    - name: Setup environment
+      run: scripts/setup.sh
+
+    - name: Set secrets permissions for elasticsearch
+      run: sudo chown 1000:0 secrets/elastic-password.txt
+
+    - name: Docker compose up elasticsearch and db.
+      run: |
+        docker compose up --quiet-pull -d elasticsearch db
+
+    - name: Run unit tests while elasticsearch is starting.
+      run: |
+        pytest -vvvv backend/ import/
+
+    - name: Docker compose wait for es.
+      run: |
+        scripts/wait_for_containers.sh 2 90 elasticsearch || true
+        docker compose logs elasticsearch
+        docker ps
+        scripts/wait_for_containers.sh 2 90 elasticsearch
+
+    - name: Setup elasticsearch
+      run: scripts/es_setup.sh
+
+    - name: Wait for db to be ready.
+      run: |
+        scripts/wait_for_containers.sh 2 90 db
+
+    - name: Import data
+      run: scripts/import.sh
+
+    - name: Docker compose up backend & frontend (depends on es setup)
+      run: |
+        docker compose up --quiet-pull -d backend frontend
+
+    - name: Check indexes
+      run: |
+        ./import/indexes.py > /tmp/index
+        cat /tmp/index | egrep 'Indexes in alias .libmeta_alias.: \[libmeta1\]'
+        cat /tmp/index | egrep 'libmeta1 \([0-9][0-9]+ docs\)'
+        # second index is removed when import is finished.
+        cat /tmp/index | egrep -v 'libmeta2 \([0-9][0-9]+ docs\)'
+
+    - name: Wait for backend & frontend to be ready.
+      run: |
+        scripts/wait_for_containers.sh 2 90 backend frontend
+
+    - name: Set up file serving # after the frontend is started so the mount dirs are created.
+      run: |
+        sudo chmod 777 /var/www/files/
+        date > /var/www/files/test.txt
+
+    - name: Run e2e tests on backend
+      # continue-on-error: true # ssss
+      env:
+        BACKEND: https://localhost
+        VERIFY_SSL: False
+        TEST_DOWNLOAD: False
+        PYTHONWARNINGS: ignore:Unverified HTTPS request
+      run: pytest -vvvv tests
+
+    - name: Run and verify log analyser
+      env:
+        KEEP_TESTS: 1
+      run: |
+        scripts/logs_anal.sh -v
+        tests/verify_logs.sh
+
+    - name: Compress log files into logs.tgz
+      if: success() || failure()
+      run: tar -czf logs.tgz logs
+
+    - name: Upload compressed logs as an artifact
+      if: success() || failure()
+      uses: actions/upload-artifact@main
+      with:
+        name: mb-logs
+        path: logs.tgz

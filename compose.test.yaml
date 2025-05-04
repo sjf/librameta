@@ -1,0 +1,23 @@
+services:
+  frontend:
+    container_name: ${COMPOSE_PROJECT_NAME}_frontend
+
+  backend:
+    container_name: ${COMPOSE_PROJECT_NAME}_backend
+
+  elasticsearch:
+    container_name: ${COMPOSE_PROJECT_NAME}_elasticsearch
+
+  db:
+    container_name: ${COMPOSE_PROJECT_NAME}_db
+
+  kibana:
+    container_name: ${COMPOSE_PROJECT_NAME}_kibana
+
+volumes:
+  db-data:
+    name: ${COMPOSE_PROJECT_NAME}_db-data
+  elastic-data:
+    name: ${COMPOSE_PROJECT_NAME}_elastic-data
+  elastic-config:
+    name: ${COMPOSE_PROJECT_NAME}_elastic-config

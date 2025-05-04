@@ -1,0 +1,9 @@
+# m h  dom mon dow   command
+# Update graphs every 3 hours
+01 */3  *   *   *    bash -lc 'cd mb;GEOIP_DB=~/GeoLite2-City_20241018/GeoLite2-City.mmdb ./scripts/logs_anal.sh'
+# Check for new certificate every 2 weeks-ish.
+01 10  1,14,28 * *   bash -lc 'cd mb; chronic ./scripts/update_certificate.sh' -s
+# Run import 3 times a week
+02 03   *   *   0,3,5    bash -lc 'cd mb; chronic import/import.py'
+# Update disk free page every 15 mins.
+*/15 * * * * df -h|grep dev > ~/mb/admin/generated/df.txt; date >>  ~/mb/admin/generated/df.txt

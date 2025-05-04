@@ -1,0 +1,94 @@
+{% include "base.html" %}
+{% include "searchbox.html" %}
+
+<div class="results-container">
+<div class="results">
+  {% if result.books %}
+    <div class="paginate unselectable">
+      {% if not result.prev_page %}
+        <div class="sort-container">
+          <div class="button-label">Year:</div>
+          <a class="button {% if query.sort_eq('year', 'asc') %}button-selected{% endif %}"
+            href="?{{ query.toggle_sort('year','asc').encode() }}">↑</a>
+
+          <a class="button {% if query.sort_eq('year','desc') %}button-selected{% endif %}"
+            href="?{{ query.toggle_sort('year','desc').encode() }}">↓</a>
+
+          <div class="button-label">Size:</div>
+          <a class="button {% if query.sort_eq('size', 'asc') %}button-selected{% endif %}"
+            href="?{{ query.toggle_sort('size','asc').encode() }}">↑</a>
+
+          <a class="button {% if query.sort_eq('size','desc') %}button-selected{% endif %}"
+            href="?{{ query.toggle_sort('size','desc').encode() }}">↓</a>
+        </div>
+      {% endif %}
+      {% if result.prev_page or result.next_page%}
+        <a href="{{ result.prev_page | safe }}" id="prev">{% if result.prev_page %}<span class="left button">⟨⟨</span>Prev{% endif %}</a>
+        <a href="{{ result.next_page | safe }}" id="next">{% if result.next_page %}Next<span class="right button">⟩⟩</span>{% endif %}</a>
+      {% endif %}
+    </div>
+    {% if result.was_expanded and not result.prev_page  %}
+      <div class="expanded">Found no exact matches, expanding your search...</div>
+    {% endif %}
+  {% endif %}
+  {% for book in result.books %}
+    {% set outer_loop = loop %}
+    <div class="book {% if loop.first %}book-first{% endif %} {% if loop.last %}book-last{% endif %}" >
+      {% if book.cover %}
+        <img loading="lazy" class="cover cover-image" src="{{book['cover']}}" data-coverisbn="{{book['isbns'][0]}}"
+        data-isbns="{{ book['isbns'] | join(',') }}" data-attempt="1" alt="Book cover" width="100">
+      {% else %}
+        <img class="cover" src="/static/cover.png" width="100" alt="Placeholder book cover">
+      {% endif %}
+      <div class="book-text-container">
+        <div class="title">{{ book.title }}</div>
+        <div class="edition">{{ book.edition }}</div>
+        <div class="series">{% if book.series %}<a class="series-link"href="/?series={{book.series | urlencode}}">{{ book.series }}</a>{% endif %}</div>
+        <!--pre>{{book.score}}</pre-->
+        <div class="authors">
+          {% for author in book.authors %}
+            {% if author.can_link %}
+              <a class="author-link" href="/?author={{ author.link | urlencode }}">{{ author.display }}</a>{{ author.suffix }}{% if not loop.last %},{% endif %}
+            {% else %}{{ author.display }}{% endif %}
+          {% endfor %}
+        </div>
+        {% if book.publisher %}<div>Published by: {{ book.publisher }}</div>{% endif %}
+        {% if book.year %}<div>Year: <span class="year">{{ book.year }}</span></div>{% endif %}
+        {% if book.language %}<div>Language: <span class="lang">{{ book.language }}</span></div>{% endif %}
+        {% if book.pages %}<div class="pages">{{ book.pages }}</div>{% endif %}
+        <div style="padding-top: 0.8rem;">File size: <span class="size" data-bytes="{{ book.size_in_bytes }}">{{ book.size }}</span></div>
+        <div>File type: <span class="file-extension extension">{{ book.extension }}</span></div>
+        <div class="dl-links">
+        {% for mirror in [book.main_link] + book.mirrors %}
+          <div class="dl-row">
+            <div class="link">
+              <a href="{{ mirror }}"
+                 class="download mirror-link"
+                 target="_blank"
+                 data-position="{{ outer_loop.index0 }}"
+                 data-id="{{ book.md5 }}">Mirror {{ loop.index }}
+              </a>
+            </div>
+            {% if 'ads.php' in mirror %}<span class="ad-block">(Use <a target="_blank" href="https://brave.com/">Ad-block</a>)</span>{% endif %}
+            {% if '176.119' in mirror %}<span>(Ignore security warning: <pre style="display: inline;">Advanced</pre> -> <pre style="display: inline;">Proceed</pre>)</span>{% endif %}
+          </div>
+        {% if config.DEBUG %} <pre class="debug-text">{{ book }}</pre> {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+  {% if result.prev_page or result.next_page%}
+    <div class="paginate unselectable">
+      <a href="{{ result.prev_page | safe }}" id="prev">{% if result.prev_page %}<span class="left button">⟨⟨</span>Prev{% endif %}</a>
+      <a href="{{ result.next_page | safe }}" id="next">{% if result.next_page %}Next<span class="right button">⟩⟩</span>{% endif %}</a>
+    </div>
+  {% endif %}
+  {% if result.at_max %}
+    <div class="more-results">Didn't find what you are looking for? Results are currently limited to the top 1000 hits. Try refining your search.</div>
+  {% endif %}
+</div>
+</div>
+{% if not result.books %}
+<div class="no-results">No results</div>
+{% endif %}
+
+{% include "footer.html" %}

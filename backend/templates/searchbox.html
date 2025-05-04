@@ -1,0 +1,132 @@
+<div class="searchbox-container">
+  <div class="basic-search {% if query.is_advanced %}display-none{% endif %}" id="basic-search">
+    <div class="searchbox">
+      <form action="/search" class="search" method="get">
+        <input class="searchinput basic" name="search" id="search" autocomplete="off"
+          value="{% if query.search %}{{  query.search }}{% endif %}" placeholder="Search by title, author or ISBN"
+          {% if not query.is_advanced %}autofocus{% endif %}>
+        <button class="searchbutton" id="searchbutton" value="Search">
+          <svg focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-label="magnifying glass icon">
+            <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"></path>
+          </svg>
+        </button>
+      </form>
+    </div>
+    <div class="adv-link" id="show-advanced-search"><a href="">Advanced search</a></div>
+    <div class="landing {% if result is defined %}display-none{% endif %}"><div class="description">Search over 7 million books.<p></div></div>
+  </div>
+  <div class="advanced-query {% if not(result is defined and query.is_advanced) %}display-none{% endif %}" id="advanced-query">
+    <div class="query">
+      {% if query.search %}<div class="query-display edit-query">Search: {{ query.search }}</div>{% endif %}
+      {% if query.title %}<div class="query-display edit-query" data-target="title">Title: {{ query.title }}</div>{% endif %}
+      {% if query.author %}<div class="query-display edit-query" data-target="author">Author: {{ query.author }}</div>{% endif %}
+      {% if query.series %}<div class="query-display edit-query" data-target="series">Series: {{ query.series }}</div>{% endif %}
+
+      {% if query.lang %}<div class="query-display edit-query" data-target="lang">Language: {{ query.display_lang }}</div>{% endif %}
+
+      {% if query.year %}<div class="query-display edit-query" data-target="year1">Year: {{ query.year }}</div>{% endif %}
+      {% if query.start_year %}<div class="query-display edit-query" data-target="year1">Start year: {{ query.start_year }}</div>{% endif %}
+      {% if query.end_year %}<div class="query-display edit-query" data-target="end_year">End year: {{ query.end_year }}</div>{% endif %}
+      {% if query.exts %}<div class="query-display edit-query" data-target="filter-epub">Extensions: <div class="extension">{{ query.exts | join(', ') }}</div></div>{% endif %}
+    </div>
+    <div class="edit-search edit-query">Edit search</div>
+  </div>
+  <div class="advanced-search {% if not(not result is defined and query.is_advanced) %}display-none{% endif %}" id="advanced-search">
+    <form action="/search-adv" method="get" id="adv-search-form">
+      <div class="search-label">Title</div>
+      <div class="searchbox">
+        <input class="searchinput" name="title" id="title" type="text" autocomplete="off" value="" placeholder="e.g. Moby Dick"
+        {% if not result is defined and query.is_advanced %}autofocus{% endif %}>
+        <div class="clearbutton">
+          <svg viewport="0 0 12 12" version="1.1" xmlns="http://www.w3.org/2000/svg" aria-label="clear icon" viewBox="0 0 12 12">
+            <line x1="1" y1="11" x2="11" y2="1" stroke-width="2"></line>
+            <line x1="1" y1="1" x2="11" y2="11" stroke-width="2"></line>
+          </svg>
+        </div>
+      </div>
+      <div class="search-label">Author</div>
+      <div class="searchbox">
+        <input class="searchinput" name="author" id="author" type="text" autocomplete="off" value="" placeholder="e.g. Stephen King">
+        <div class="clearbutton">
+          <svg viewport="0 0 12 12" version="1.1" xmlns="http://www.w3.org/2000/svg" aria-label="clear icon" viewBox="0 0 12 12">
+            <line x1="1" y1="11" x2="11" y2="1" stroke-width="2"></line>
+            <line x1="1" y1="1" x2="11" y2="11" stroke-width="2"></line>
+          </svg>
+        </div>
+      </div>
+      <div class="search-label">Series</div>
+      <div class="searchbox">
+        <input class="searchinput" name="series" id="series" type="text" autocomplete="off" value="" placeholder="e.g. The Dark Tower">
+        <div class="clearbutton">
+          <svg viewport="0 0 12 12" version="1.1" xmlns="http://www.w3.org/2000/svg" aria-label="clear icon" viewBox="0 0 12 12">
+            <line x1="1" y1="11" x2="11" y2="1" stroke-width="2"></line>
+            <line x1="1" y1="1" x2="11" y2="11" stroke-width="2"></line>
+          </svg>
+        </div>
+      </div>
+      <div class="search-label lang">Language</div>
+      <div class="searchbox">
+        <div class="dropdown">
+          <input class="searchinput" id="lang" type="text" autocomplete="off" value="" placeholder="e.g. English">
+          <input name="lang" id="lang-code" type="hidden" autocomplete="off" value="">
+          <ul class="dropdown-content" id="dropdown-content"></ul>
+        </div>
+        <div class="clearbutton">
+          <svg viewport="0 0 12 12" version="1.1" xmlns="http://www.w3.org/2000/svg" aria-label="clear icon" viewBox="0 0 12 12">
+            <line x1="1" y1="11" x2="11" y2="1" stroke-width="2"></line>
+            <line x1="1" y1="1" x2="11" y2="11" stroke-width="2"></line>
+          </svg>
+        </div>
+      </div>
+      <div class="search-label">Publication year</div>
+      <div class="searchbox-row">
+        <div class="searchbox year-searchbox">
+          <div class="search-label" id="year1-label"></div>
+          <input class="searchinput input-year" id="year1" name="year" autocomplete="off" value="" placeholder="">
+          <div class="clearbutton">
+            <svg viewport="0 0 12 12" version="1.1" xmlns="http://www.w3.org/2000/svg" aria-label="clear icon" viewBox="0 0 12 12">
+              <line x1="1" y1="11" x2="11" y2="1" stroke-width="2"></line>
+              <line x1="1" y1="1" x2="11" y2="11" stroke-width="2"></line>
+            </svg>
+          </div>
+        </div>
+        <div class="checkbox-div range-div">
+          <input class="range-button checkbox" type="checkbox" id="range-button">
+          <label class="range-label" for="range-button">Range</label>
+        </div>
+      </div>
+      <div class="searchbox year-searchbox display-none" id="end-year">
+          <div class="search-label">End:</div>
+          <input class="searchinput input-year" name="end_year" id="end_year" autocomplete="off" value="" placeholder="">
+          <div class="clearbutton">
+            <svg viewport="0 0 12 12" version="1.1" xmlns="http://www.w3.org/2000/svg" aria-label="clear icon" viewBox="0 0 12 12">
+              <line x1="1" y1="11" x2="11" y2="1" stroke-width="2"></line>
+              <line x1="1" y1="1" x2="11" y2="11" stroke-width="2"></line>
+            </svg>
+          </div>
+      </div>
+      <div class="search-label">File type</div>
+      <div class="checkboxes">
+        <div class="checkbox-div">
+          <input class="checkbox ext-cb" type="checkbox" id="filter-epub" name="ext" value="epub">
+          <label class="extension checkbox" for="filter-epub">epub</label><br>
+        </div>
+        <div class="checkbox-div">
+          <input class="checkbox ext-cb" type="checkbox" id="filter-mobi" name="ext" value="mobi">
+          <label class="extension checkbox" for="filter-mobi">mobi</label><br>
+        </div>
+        <div class="checkbox-div">
+          <input class="checkbox ext-cb" type="checkbox" id="filter-pdf" name="ext" value="pdf">
+          <label class="extension checkbox" for="filter-pdf">pdf</label><br>
+        </div>
+        <div class="checkbox-div">
+          <input class="checkbox ext-cb" type="checkbox" id="filter-djvu" name="ext" value="djvu">
+          <label class="extension checkbox" for="filter-djvu">djvu</label><br>
+        </div>
+      </div>
+      <button class="link" id="advanced-search-button" action="submit">Search</button>
+      <div class="basic-link" id="show-basic-search"><a href="">Back to basic search</a></div>
+      <div class="basic-link display-none" id="back-to-query"><a href="">Cancel</a></div>
+    </form>
+  </div>
+</div>

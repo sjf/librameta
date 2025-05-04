@@ -1,0 +1,50 @@
+.DS_Store
+._.DS_Store
+._*
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+__pypackages__/
+*.egg
+*/*.egg-info
+
+mbutils/build/
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+gimp
+secrets
+dumps
+test_dumps
+frontend/ssl/*
+logs/*html
+logs/*.log*
+logs/*.gz*
+logs/*/*.log*
+logs/*/*.gz*
+# Generated files.
+admin/generated/*
+time_series.csv

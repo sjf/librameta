@@ -1,0 +1,18 @@
+{% include "base.html" %}
+
+<div class="about-text">
+  <h2>Help Us Improve!</h2>
+  <p>If you hit a broken link or something's not working, let me know.
+  <p>No personal or identifying data is collected, and you can add your email if you want a reply.</p>
+  <form action="/thankyou" method="post">
+    <label for="email">Email (optional):</label>
+    <input type="email" id="email" name="email"><p>
+    <label for="message">What's the issue?</label><br>
+    <textarea class="feedback" id="message" name="message" required></textarea><br>
+    <button type="submit">Send Feedback</button>
+  </form>
+  <h3>Contact</h3>
+  <p>Email: <a href="mailto:contact@librameta.net?Subject=LibraMeta">contact@librameta.net</a>
+</div>
+
+{% include "footer.html" %}

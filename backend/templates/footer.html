@@ -1,0 +1,13 @@
+  <div class="about"><a href="/about">About</a><a href="/feedback">Contact</a></div>
+</div> <!--body-div-->
+
+  <div class="infoflashes bottom">
+    {% if page == 'index' %}{% include "index_flashes.html" %}
+    {% elif page == 'results' %}{% include "results_flashes.html" %}{% endif %}
+
+    {% for message in get_flashed_messages(category_filter=["info"]) %}
+      <div class="flash">{{ message | safe}}</div>
+    {% endfor %}
+  </div>
+
+</body>

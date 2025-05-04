@@ -1,0 +1,203 @@
+services:
+  frontend:
+    container_name: frontend
+    build:
+      context: . # pwd for build is the same dir as the compose file.
+      dockerfile: frontend/Dockerfile
+    restart: always
+    network_mode: host # Use host networking instead of docker NAT.
+    # command: tail -f /dev/null
+    # ports:
+    #   # These should be only publically accessibly ports.
+    #   - 0.0.0.0:443:443
+    #   - 0.0.0.0:80:80
+    ports: [] # Ports not used in host network.
+    environment:
+      - TZ=America/Los_Angeles
+    volumes:
+      - type: bind
+        source: ./frontend/nginx.conf
+        target: /etc/nginx/nginx.conf
+        read_only: true
+        bind:
+          create_host_path: false # stop docker from creating a directory if file does not exist.
+      - ./secrets/ssl:/etc/ssl:ro           # SSL certs
+      - ./logs/:/var/log                    # Log files
+      - ./admin/:/var/www/admin:ro          # Static admin files
+      - /var/www/files/:/var/www/files/:ro  # Serve generic static files
+    secrets:
+      - htpasswd
+      - files_htpasswd
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost/health || exit 1
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  backend:
+    container_name: backend
+    build:
+      context: . # pwd for build is the same dir as the compose file.
+      dockerfile: backend/Dockerfile
+    restart: always
+    secrets:
+      - db-user-password.txt
+      - flask-secret-key.txt
+      - elastic-api-key.txt
+      - config.ini
+    ports:
+      - 127.0.0.1:8000:8000
+    environment:
+      - TZ=America/Los_Angeles
+      - SECRET_KEY_FILE=/run/secrets/flask-secret-key.txt
+      - ELASTIC_HOST=http://elasticsearch:9200
+      - ELASTIC_API_KEY_NAME=read_only_search_key
+      - ELASTIC_API_KEY_FILE=/run/secrets/elastic-api-key.txt
+      - CONFIG_INI=/run/secrets/config.ini
+      - MB_LOG_DIR=/var/log/
+    volumes:
+      - ./logs/:/var/log
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://127.0.0.1:8000/health || exit 1
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  elasticsearch:
+    image: elasticsearch:8.15.0
+    container_name: elasticsearch
+    environment:
+      - TZ=America/Los_Angeles
+      - ELASTIC_PASSWORD_FILE=/run/secrets/elastic-password.txt
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.license.self_generated.type=trial
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.enabled=true
+      - ingest.geoip.downloader.enabled=false
+    ports:
+      - 127.0.0.1:9200:9200
+      - 127.0.0.1:9300:9300
+    volumes:
+      - elastic-data:/usr/share/elasticsearch/data
+      - elastic-config:/usr/share/elasticsearch/config
+      - ./elasticsearch/log4j2.properties:/usr/share/elasticsearch/config/log4j2.properties:ro
+      - ./logs/:/var/log
+    secrets:
+      - source: elastic-password.txt
+        target: elastic-password.txt
+    healthcheck:
+      test: curl -u elastic:"$$(cat /run/secrets/elastic-password.txt)" --silent --fail 127.0.0.1:9200/_cluster/health || exit 1
+      start_period: 30s
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  db:
+    # We use a mariadb image which supports both amd64 & arm64 architecture
+    image: mariadb:10-focal
+    # If you really want to use MySQL, uncomment the following line
+    #image: mysql:8
+    container_name: db
+    command: '--default-authentication-plugin=mysql_native_password'
+    # Allow client connections from localhost for development.
+    ports:
+      - 127.0.0.1:3306:3306
+    # Don't put this container in the default profile so it doesn't start when doing `up`.
+    profiles:
+      - db
+    healthcheck:
+      test: ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 --password="$$(cat /run/secrets/db-password.txt)" --silent']
+      interval: 3s
+      retries: 5
+      start_period: 30s
+    secrets:
+      - db-password.txt
+      - db-user-password.txt
+    volumes:
+      - db-data:/var/lib/mysql
+      # - ./db/:/docker-entrypoint-initdb.d/:ro
+      - ./db/my.cnf:/etc/mysql/mariadb.conf.d/99-my.cnf:ro
+      - ./logs/:/var/log
+    environment:
+      - TZ=America/Los_Angeles
+      - MYSQL_DATABASE=libmeta
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/db-password.txt
+      - MYSQL_USER=mysql
+      - MYSQL_PASSWORD_FILE=/run/secrets/db-user-password.txt
+
+  kibana:
+    image: kibana:8.15.0
+    container_name: kibana
+    ports:
+      - 127.0.0.1:5601:5601
+    # Don't put this container in the default profile so it doesn't start when doing `up`.
+    profiles:
+      - db
+    environment:
+      - TZ=America/Los_Angeles
+      - xpack.license.self_generated.type=trial
+      - ELASTICSEARCH_SERVICEACCOUNTTOKEN=${ELASTICSEARCH_SERVICEACCOUNTTOKEN:?ELASTICSEARCH_SERVICEACCOUNTTOKEN not set in .env}
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: curl --silent --fail http://127.0.0.1:5601/login || exit 1
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+
+  # logstash:
+  #   image: logstash:8.15.0
+  #   container_name: logstash
+  #   environment:
+  #     discovery.seed_hosts: logstash
+  #     LS_JAVA_OPTS: "-Xms512m -Xmx512m"
+  #     - TZ=America/Los_Angeles
+  #   volumes:
+  #     - ./logstash/pipeline/logstash-nginx.config:/usr/share/logstash/pipeline/logstash-nginx.config
+  #     - ./logstash/nginx.log:/home/nginx.log
+  #   ports:
+  #     - 5000:5000/tcp
+  #     - 5000:5000/udp
+  #     - 5044:5044
+  #     - 9600:9600
+  #   depends_on:
+  #     - elasticsearch
+  #   command: logstash -f /usr/share/logstash/pipeline/logstash-nginx.config
+
+volumes:
+  db-data:
+    name: db-data
+  elastic-data:
+    name: elastic-data
+  elastic-config:
+    name: elastic-config
+
+secrets:
+  db-password.txt:
+    file: secrets/db-password.txt
+  db-user-password.txt:
+    file: secrets/db-user-password.txt
+  flask-secret-key.txt:
+    file: secrets/flask-secret-key.txt
+  elastic-password.txt:
+    file: secrets/elastic-password.txt
+  elastic-api-key.txt:
+    file: secrets/elastic-api-key.txt
+  config.ini:
+    file: secrets/config.ini
+  htpasswd:
+    file: secrets/htpasswd
+  files_htpasswd:
+    file: secrets/files_htpasswd
+
